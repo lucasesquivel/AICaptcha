@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.awt.Font;
+import javax.sound.sampled.*;
 
 public class cap2 extends JFrame implements ActionListener{
 
@@ -21,7 +22,7 @@ public class cap2 extends JFrame implements ActionListener{
 
 
         // Read parent folder and randomly choose a subfolder
-        File[] folders = new File("lib/Images").listFiles(File::isDirectory);
+        File[] folders = new File("lib/image").listFiles(File::isDirectory);
         if (folders != null && folders.length > 0) {
             folderName = folders[(int) (Math.random() * folders.length)].getName();
         } else {
@@ -32,8 +33,8 @@ public class cap2 extends JFrame implements ActionListener{
 
 
         // Load the images
-        File aiFolder = new File("lib/Images/" + folderName + "/AI");
-        File realFolder = new File("lib/Images/" + folderName + "/Real");
+        File aiFolder = new File("lib/image/" + folderName + "/AI");
+        File realFolder = new File("lib/image/" + folderName + "/Real");
         File[] aiFiles = aiFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
         File[] realFiles = realFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
 
@@ -78,10 +79,10 @@ public class cap2 extends JFrame implements ActionListener{
         frame.setSize(600, 600);
         frame.setTitle("AI Captcha");
 
-        // TODO doesnt work
-        frame.setIconImage(new ImageIcon("lib/Icons/ProgramIcon.png").getImage());
+        // Program Icon
+        frame.setIconImage(new ImageIcon("lib/icon/ProgramIcon.png").getImage());
 
-        // What does this do ??
+        // Main JPanel
         JPanel contentPane = new JPanel(new BorderLayout());
 
 
@@ -132,30 +133,43 @@ public class cap2 extends JFrame implements ActionListener{
                         if (checkBox.isSelected() && checkBoxNames[index].equals(cKey)) {
 
                             // Checkmark gif
-                            JLabel check = new JLabel(new ImageIcon("lib/Icons/check1.gif"));
+                            JLabel check = new JLabel(new ImageIcon("lib/icon/check.gif"));
                             label.setPreferredSize(new Dimension(200, 200));
                             label.add(check, BorderLayout.CENTER);
 
+                            // Play correct sound in a separate thread
+                            Thread soundThread = new Thread(() -> playSound("lib/sound/correct.wav"));
+                            soundThread.start();
+
                             // Set border, printCorrect
                             label.setBorder(BorderFactory.createLineBorder(Color.GREEN, 7));
-                            //System.out.println("Checkbox " + (index + 1) + " is selected and is equal to the key");
                             checkBoxKey = true;
                             printCorrect();
+
+                            // Close
                             frame.dispose();
-                            
+
+
                         } else {
 
                             // Xmark gif
-                            JLabel xmark = new JLabel(new ImageIcon("lib/Icons/x2.gif"));
+                            JLabel xmark = new JLabel(new ImageIcon("lib/icon/x.gif"));
                             label.setPreferredSize(new Dimension(200, 200));
                             label.add(xmark, BorderLayout.CENTER);
 
+                            // Play wrong sound in a separate thread
+                            Thread soundThread = new Thread(() -> playSound("lib/sound/wrong.wav"));
+                            soundThread.start();
+
                             // Set border, printWrong
                             label.setBorder(BorderFactory.createLineBorder(Color.RED, 7));
-                            //System.out.println("Checkbox " + (index + 1) + " is not selected or is not equal to the key");
                             checkBoxKey = false;
                             printWrong();
+
+                            // Close
                             frame.dispose();
+
+
                         }
                     });
 
@@ -176,8 +190,7 @@ public class cap2 extends JFrame implements ActionListener{
     }
 }      
 
-
-        // What does this do??
+        // Adds 3x3 panel to panel
         contentPane.add(gridPanel, BorderLayout.CENTER);
 
 
@@ -196,20 +209,6 @@ public class cap2 extends JFrame implements ActionListener{
         titleLabel.setVerticalAlignment(SwingConstants.CENTER);
 
 
-        // BUTTON =========================================================
-        // // Button creation
-        // JButton button = new JButton("Submit");
-        // button.setFont(new Font("Arial", Font.BOLD, 20));
-        // button.setPreferredSize(new Dimension(50, 50));
-        // button.setMaximumSize(button.getPreferredSize());
-        // button.setHorizontalAlignment(SwingConstants.CENTER);
-        // button.setVerticalAlignment(SwingConstants.CENTER);
-
-        // Add Bottom Panel and Button
-        //buttonPanel.add(button);
-        // BUTTON =======================================================
-
-
         contentPane.add(buttonPanel, BorderLayout.NORTH);
         buttonPanel.add(titleLabel);
 
@@ -221,15 +220,6 @@ public class cap2 extends JFrame implements ActionListener{
         frame.setVisible(true);
         frame.setResizable(false);
     }
-
-    // TODO:
-    // Use the appropriate image format: Make sure that you are using the appropriate image format for your application. JPEG images are best for photographs, while PNG images are best for graphics and logos. Also, consider the image resolution and aspect ratio. If the image is too large, it may be scaled down, resulting in artifacts.
-    // Use a high-quality image: The quality of an image can affect its appearance in your GUI. If possible, use a high-quality image with a high resolution and good color depth.
-    // Scale the image correctly: If you are scaling an image to fit within a certain area, make sure that you are scaling it correctly. Use the correct scaling algorithm to avoid artifacts, and avoid distorting the image.
-    // Use the correct rendering hints: You can improve the image quality by setting the correct rendering hints for your graphics context. For example, you can enable anti-aliasing to smooth the edges of the image.
-
-    //HEllo
-
 
     // Shuffle array
     private static void shuffleArray(Object[] array) {
@@ -247,6 +237,7 @@ public class cap2 extends JFrame implements ActionListener{
         final JOptionPane optionPane = new JOptionPane("    Correct choice, proceeding...", JOptionPane.PLAIN_MESSAGE);
         final JDialog dialog = optionPane.createDialog("AI Captcha");
         optionPane.setOptions(new Object[0]); // remove "OK" button 
+
         new Timer(2000, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 dialog.dispose();
@@ -260,6 +251,7 @@ public class cap2 extends JFrame implements ActionListener{
     private static void printWrong(){
         final JOptionPane optionPane = new JOptionPane("Incorrect choice, please try again.", JOptionPane.PLAIN_MESSAGE);
         final JDialog dialog = optionPane.createDialog("AI Captcha");
+
         new Timer(3000, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 dialog.dispose();
@@ -267,6 +259,45 @@ public class cap2 extends JFrame implements ActionListener{
         }).start();
         dialog.setVisible(true);    
         new cap2();
+    }
+
+
+    // Sound player
+    public static void playSound(String filePath) {
+        try {
+            // Open the audio file
+            File soundFile = new File(filePath);
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+    
+            // Get the audio format
+            AudioFormat audioFormat = audioInputStream.getFormat();
+    
+            // Create a data line info object with the audio format
+            DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
+    
+            // Open a data line using the data line info
+            SourceDataLine sourceDataLine = (SourceDataLine) AudioSystem.getLine(dataLineInfo);
+            sourceDataLine.open(audioFormat);
+    
+            // Start playing the audio
+            sourceDataLine.start();
+    
+            // Read audio data from the input stream and write it to the data line
+            int bufferSize = 4096;
+            byte[] buffer = new byte[bufferSize];
+            int bytesRead;
+            while ((bytesRead = audioInputStream.read(buffer, 0, bufferSize)) != -1) {
+                sourceDataLine.write(buffer, 0, bytesRead);
+            }
+    
+            // Stop and close the data line and input stream
+            sourceDataLine.drain();
+            sourceDataLine.stop();
+            sourceDataLine.close();
+            audioInputStream.close();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException ex) {
+            ex.printStackTrace();
+        }
     }
 
 
