@@ -228,6 +228,7 @@ public class cap2 extends JFrame implements ActionListener{
     // Scale the image correctly: If you are scaling an image to fit within a certain area, make sure that you are scaling it correctly. Use the correct scaling algorithm to avoid artifacts, and avoid distorting the image.
     // Use the correct rendering hints: You can improve the image quality by setting the correct rendering hints for your graphics context. For example, you can enable anti-aliasing to smooth the edges of the image.
 
+    //HEllo
 
 
     // Shuffle array
